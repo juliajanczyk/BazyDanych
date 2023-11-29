@@ -1,0 +1,24 @@
+zad 6A)
+ZAMOWIENIA
+zależności funkcyjne:
+
+id_produktu-> nazwa_produktu, cena_produktu, VAT
+id_klienta-> nazwa_klienta, 
+data_zamowienia -> id_klienta, id_produktu
+cena_produktu -> id_produktu, nazwa_produktu, VAT, suma_brutto, suma_netto
+suma_brutto  -> suma_netto, VAT
+
+klucze kandydujace:
+data_zamowienia, id_klienta, id_produktu
+id_produktu, cena_produktu
+
+POMIESZCZENIA
+zależności funkcyjne:
+id_pomieszczenia -> numer_pomieszczenia, id_budynku, liczba_okien, liczba_drzwi, powierzchnia
+id_budynku ->  ulica, miasto, kod_pocztowy
+ulica -> miasto, kod_pocztowy
+kod_pocztowy -> miasto
+
+klucze kandydujace:
+id_pomieszczenia, id_budynku
+
