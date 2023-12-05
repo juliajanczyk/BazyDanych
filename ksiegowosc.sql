@@ -120,15 +120,15 @@ VALUES
 SELECT id_pracownika, nazwisko FROM księgowość.pracownicy; 
 
 -- b)
-SELECT id_pracownika FROM księgowość.pracownicy 
-JOIN księgowość.pensje ON id_pracownika=id_pensji
+SELECT id_pracownika FROM księgowość.wynagrodzenia 
+JOIN księgowość.pensje ON wynagrodzenia.id_pensji=pensje.id_pensji
 WHERE kwota > 1000::money;
 --? '1000'::money
 
 -- c)
-SELECT id_pracownika FROM księgowość.pracownicy 
-JOIN księgowość.pensje ON id_pracownika=id_pensji
-JOIN księgowość.premie ON id_premii=id_pracownika
+SELECT id_pracownika FROM księgowość.wynagrodzenia 
+JOIN księgowość.pensje ON wynagrodzenia.id_pensji=pensje.id_pensji
+JOIN księgowość.premie ON wynagrodzenia.id_premii=premie.id_premii
 WHERE pensje.kwota > 2000::money AND premie.kwota IS NULL; 
 -- pracownicy ktorych pensja > 2000 i brak premii
 
@@ -146,38 +146,39 @@ WHERE (imie::varchar) ILIKE '%a' AND nazwisko ILIKE '%n%';
 -- lub (imie::varchar LIKE '%a') AND (nazwisko LIKE '%n%')
 
 -- f)
-SELECT imie, nazwisko, coalesce(liczba_godzin- 160) AS nadgodziny  FROM księgowość.pracownicy 
-LEFT JOIN księgowość.godziny ON pracownicy.id_pracownika=godziny.id_pracownika;
+SELECT imie, nazwisko, coalesce(liczba_godzin- 160) AS nadgodziny  FROM księgowość.wynagrodzenia 
+LEFT JOIN księgowość.pracownicy ON wynagrodzenia.id_pracownika=pracownicy.id_pracownika
+LEFT JOIN księgowość.godziny ON wynagrodzenia.id_godziny=godziny.id_godziny;
 --left bo chcemy kazdego pracownika nawet jak nie ma nadgodzin
 
 -- g)
-SELECT imie, nazwisko FROM księgowość.pracownicy 
-JOIN księgowość.pensje ON id_pracownika=id_pensji -- join bo chcemy spełniajace wranauek
+SELECT imie, nazwisko FROM księgowość.wynagrodzenia 
+JOIN księgowość.pracownicy ON wynagrodzenia.id_pracownika=pracownicy.id_pracownika
+JOIN księgowość.pensje ON wynagrodzenia.id_pensji=pensje.id_pensji
 WHERE pensje.kwota < 3000::money AND pensje.kwota > 1500::money;
 -- przedział 1500-3000
 
---???
---JOIN księgowość.wynagrodzenia ON wynagrodzenia.id_pracownika=pracownicy.id_pracownika
---JOIN księgowość.pensje ON wynagrodzenia.id_pracownika=wynagrodzenia.id_pensji
-
 -- h)
-SELECT imie, nazwisko FROM księgowość.pracownicy 
-JOIN księgowość.godziny ON godziny.id_pracownika = pracownicy.id_pracownika
-JOIN księgowość.premie ON księgowość.premie.id_premii = księgowość.godziny.id_godziny
+SELECT imie, nazwisko FROM księgowość.wynagrodzenia 
+JOIN księgowość.godziny ON godziny.id_godziny = wynagrodzenia.id_godziny
+JOIN księgowość.pracownicy ON godziny.id_pracownika = wynagrodzenia.id_pracownika
+LEFT JOIN księgowość.premie ON premie.id_premii = wynagrodzenia.id_premii
 WHERE ( liczba_godzin > 160 ) AND (premie.kwota = 0::money);
 -- pracowali w nadgodzinach czyli czas pracy > 160 AND  premia=0
 
 -- i)
 SELECT * FROM księgowość.pracownicy
-LEFT JOIN księgowość.pensje ON księgowość.pracownicy.id_pracownika=księgowość.pensje.id_pensji
+LEFT JOIN księgowość.wynagrodzenia ON pracownicy.id_pracownika=wynagrodzenia.id_pracownika
+LEFT JOIN księgowość.pensje ON wynagrodzenia.id_pensji=pensje.id_pensji
 ORDER BY pensje.kwota ASC ;-- sortujemy po pensji rosnaco
 -- rosnaco ASC 
 -- malejaco DESC
 
 -- j)
 SELECT * FROM księgowość.pracownicy
-LEFT JOIN księgowość.pensje ON pracownicy.id_pracownika = pensje.id_pensji -- księgowość.pensje.id_pensji ??
-LEFT JOIN księgowość.premie ON pracownicy.id_pracownika = premie.id_premii
+LEFT JOIN księgowość.wynagrodzenia ON pracownicy.id_pracownika=wynagrodzenia.id_pensji
+LEFT JOIN księgowość.pensje ON wynagrodzenia.id_pensji = pensje.id_pensji -- księgowość.pensje.id_pensji ??
+LEFT JOIN księgowość.premie ON wynagrodzenia.id_premii = premie.id_premii
 ORDER BY księgowość.pensje.kwota, księgowość.premie.kwota DESC ;--malejaco 
 -- sortujemy wg pensji i premii
 
@@ -201,12 +202,9 @@ SELECT SUM(kwota) AS suma FROM księgowość.pensje;
 
 -- suma wszytskich wynagrodzen razem z premiami
 SELECT SUM(pensje.kwota) + SUM(premie.kwota) AS suma_wynagrodzen
-FROM księgowość.pensje
-LEFT JOIN JOIN księgowość.premie ON księgowość.premie.id_premii = księgowość.pensje.id_pensje;
-
---FROM księgowość.wynagrodzenia -- lacze tabelki poprzez  tab wynagrodzenia (?)
---LEFT JOIN księgowość.pensje ON księgowość.pensje.id_pensji = księgowość.wynagrodzenia.id_pensji
---LEFT JOIN księgowość.premie ON księgowość.premie.id_premii = księgowość.wynagrodzenia.id_premii;
+FROM księgowość.wynagrodzenia -- lacze tabelki poprzez  tab wynagrodzenia (?)
+LEFT JOIN księgowość.pensje ON księgowość.pensje.id_pensji = księgowość.wynagrodzenia.id_pensji
+LEFT JOIN księgowość.premie ON księgowość.premie.id_premii = księgowość.wynagrodzenia.id_premii;
 
 -- n)
 
@@ -218,10 +216,9 @@ GROUP BY stanowisko; --   wynagrodzenie dla stanowisk
 
 -- z premia
 SELECT stanowisko, SUM(pensje.kwota) + SUM(premie.kwota) AS suma_wynagrodzen
-
---FROM księgowość.wynagrodzenia -- lacze tabelki poprzez tab wynagrodzenia
---LEFT JOIN księgowość.pensje ON księgowość.pensje.id_pensji = księgowość.wynagrodzenia.id_pensji
---LEFT JOIN księgowość.premie ON księgowość.premie.id_premii = księgowość.wynagrodzenia.id_premii
+FROM księgowość.wynagrodzenia -- lacze tabelki poprzez tab wynagrodzenia
+LEFT JOIN księgowość.pensje ON księgowość.pensje.id_pensji = księgowość.wynagrodzenia.id_pensji
+LEFT JOIN księgowość.premie ON księgowość.premie.id_premii = księgowość.wynagrodzenia.id_premii
 GROUP BY stanowisko; -- suma wynagrodzen dla kazdego stanowsika
 
 --WHERE stanowisko = 'Księgowy' -- suma wynagrodzen dla danego stanowiska
@@ -231,8 +228,6 @@ GROUP BY stanowisko; -- suma wynagrodzen dla kazdego stanowsika
 SELECT COUNT(premie.kwota), stanowisko FROM księgowość.wynagrodzenia 
 LEFT JOIN księgowość.pensje ON pensje.id_pensji = wynagrodzenia.id_pensji
 LEFT JOIN księgowość.premie ON premie.id_premii = wynagrodzenia.id_premii
--- SELECT COUNT(premie.kwota), stanowisko FROM księgowość.premie  -- lub to
--- LEFT księgowość.pensje ON pensje.id_pensji = premie.id_premii
 WHERE księgowość.premie.kwota!=0::money
 GROUP BY stanowisko; -- liczba premii dla kazdego stanowiska
 
@@ -240,5 +235,6 @@ GROUP BY stanowisko; -- liczba premii dla kazdego stanowiska
 DELETE FROM księgowość.pracownicy
 USING księgowość.pensje
 WHERE pensje.kwota < 1200::money;
+
 
 
