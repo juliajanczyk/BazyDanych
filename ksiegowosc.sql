@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS księgowość.pracownicy (
 	imie char(50) NOT NULL,
 	nazwisko char(50) NOT NULL,
 	adres char(50),
-	telefon	int
+	telefon	VARCHAR
 );
 -- VARCHAR!!!!!!!! powinien byc
 CREATE TABLE IF NOT EXISTS księgowość.godziny (
