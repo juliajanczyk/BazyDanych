@@ -13,7 +13,7 @@ JOIN AdventureWorks2022.HumanResources.EmployeePayHistory ON
 AdventureWorks2022.HumanResources.EmployeePayHistory.BusinessEntityID = Person.Person.BusinessEntityID
 )
 
-SELECT  TempEmployeeInfo.Imie, TempEmployeeInfo.Nazwisko, TempEmployeeInfo.Rate FROM TempEmployeeInfo 
+SELECT * FROM TempEmployeeInfo 
 
 -------------------------------------------
 
@@ -33,18 +33,15 @@ USE AdventureWorksLT2022
 GO
 WITH CompanySalesInfo AS
 (
-SELECT Customer.CompanyName, SalesOrderDetail.LineTotal AS Revenue,  
-	   SalesOrderDetail.SalesOrderID, Customer.FirstName, Customer.LastName
-FROM SalesLT.SalesOrderDetail
+SELECT CONCAT(Customer.CompanyName, ' (', Customer.FirstName, ' ', Customer.LastName, ') ' ) AS CompanyContact, 
+SUM(SalesOrderDetail.LineTotal) AS Revenue
+FROM SalesLT.SalesOrderDetail 
 
 JOIN SalesLT.SalesOrderHeader ON SalesOrderDetail.SalesOrderID = SalesOrderHeader.SalesOrderID
 JOIN SalesLT.Customer ON SalesOrderHeader.CustomerID = Customer.CustomerID
+GROUP BY CompanyName,Customer.FirstName,Customer.LastName
 )
-
-SELECT CONCAT(Customer.CompanyName, ' (', Customer.FirstName, ' ', Customer.LastName, ') ' ) AS CompanyContact, Revenue 
-FROM CompanySalesInfo
-JOIN SalesLT.SalesOrderHeader ON CompanySalesInfo.SalesOrderID = SalesOrderHeader.SalesOrderID
-JOIN SalesLT.Customer ON SalesOrderHeader.CustomerID = Customer.CustomerID
+Select * FROM CompanySalesInfo
 
 ----------------------------------------------
 
