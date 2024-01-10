@@ -1,0 +1,78 @@
+Zadanie 1
+---------------------------
+SELECT SalesOrderID, SalesOrderDetailID
+FROM Sales.SalesOrderDetail
+WHERE SalesOrderID = 43683
+ AND SalesOrderDetailID = 240;
+---
+ SELECT name
+FROM sys.key_constraints
+WHERE parent_object_id = OBJECT_ID('Sales.SalesOrderDetail') AND type_desc = 'PRIMARY_KEY_CONSTRAINT';
+---
+ ALTER TABLE Sales.SalesOrderDetail
+DROP CONSTRAINT PK_SalesOrderDetail_SalesOrderID_SalesOrderDetailID;
+----------------------------
+A - AND
+-----------
+1. Istnieje klucz główny
+Czas  - 0.001s
+koszt operacji I/O -  0.003125
+koszt CPU - 0.0001581
+ilosc wczytanych wierszy - 1
+-----------
+2. Brak klucza głównego
+Czas  - 0.029s
+koszt operacji I/O -  1.82905
+koszt CPU - 0.133606
+ilosc wczytanych wierszy - 121317
+-----------
+WNIIOSKI
+Klucz główny pozwala na efektywne wyszukiwanie danych. Zapytanie z kluczem głównym ma znacznie niższy koszt operacji I/O, CPU oraz jest znacznie szybsze. Zapytanie z kluczem głównym wczytuje tylko 1 wiersz, co jest spodziewane dla klucza głównego. Natomiast zapytanie bez klucza głównego wczytuje aż 121317 wierszy, co może być wynikiem pełnego skanu tabeli.
+Klucze główne wpływają na efektywne wyszukiwanie i a wydajność zapytań, przyspieszając je i zmniejszając zużycie zasobów. 
+
+----------------------------
+B - OR
+SELECT SalesOrderID, SalesOrderDetailID
+FROM Sales.SalesOrderDetail
+WHERE SalesOrderID = 43683
+OR SalesOrderDetailID = 240;
+-----------
+1. Istnieje klucz główny
+Czas  - 0.014s
+koszt operacji I/O -  0.003125
+koszt CPU - 0.0001581
+ilosc wczytanych wierszy - 1
+----------
+2. Brak klucza głównego
+Czas  - 0.023s
+koszt operacji I/O -  0.206829
+koszt CPU - 0.133606
+ilosc wczytanych wierszy - 121317
+-----------
+WNIIOSKI
+Klucz główny umożliwia efektywną identyfikację i odczytanie konkretnego rekordu, co z kolei przekłada się na krótszy czas wykonania, niższy koszt operacji I/O i niższy koszt operacji CPU. 
+Zapytanie z OR zwróci 13 wierszy, natomiast z AND zwraca 1.
+------------------------------------------
+
+Zadanie 2
+
+SELECT BusinessEntityID, FirstName, MiddleName, LastName
+FROM Person.Person
+WHERE BusinessEntityID = 20361
+OR FirstName LIKE 'Julia';
+
+1. Bez indexu
+Czas  - 0.006s
+koszt operacji I/O -  0.154236
+koszt CPU - 0.0221262
+ilosc wczytanych wierszy - 19972
+
+2. Z dodanym indexem
+CREATE INDEX INDEX_Person ON Person.Person(BusinessEntityID);
+Czas  - 0.009s
+koszt operacji I/O -  0.154236
+koszt CPU - 0.0221262
+ilosc wczytanych wierszy - 119972
+
+WNIOSEK
+Dodanie indeksu nie miało znaczącego wpływu na wykonanie tego konkretnego zapytania. Różnica w czasie jest nieznaczna, jednak nie przyspiesza działania zapytania, wskazuje to na potencjalne problemy z efektywnością indeksu lub na specyfikę zapytania. Inne wartości nie zmieniły się. 
